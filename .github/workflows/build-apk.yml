@@ -8,73 +8,24 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # 1. 下载代码
     - uses: actions/checkout@v4
       with:
         submodules: true
-        fetch-depth: 0
     
-    # 2. 设置 Java
     - uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
     
-    # 3. 设置 Android
-    - name: Setup Android
-      uses: android-actions/setup-android@v3
-      with:
-        sdkmanager: |
-          "platforms;android-34"
-          "build-tools;34.0.0"
-          "ndk;25.2.9519653"
-        ndk-version: "25.2.9519653"
+    - uses: android-actions/setup-android@v3
     
-    # 4. 构建 APK（关键修改）
     - name: Build APK
       run: |
-        echo "=== 开始构建 VLC-Android ==="
-        
-        # 进入 application 目录（这是关键）
         cd application
-        
-        echo "当前目录: $(pwd)"
-        echo "目录内容:"
-        ls -la
-        
-        # 方法1：尝试使用 gradle（不是 gradlew）
-        echo "尝试使用 gradle 命令..."
         gradle :app:assembleDebug
-        
-        # 检查结果
-        if ls app/build/outputs/apk/debug/*.apk 1> /dev/null 2>&1; then
-          echo "✅ APK 构建成功！"
-          ls -la app/build/outputs/apk/debug/
-        else
-          echo "⚠️ 标准构建可能失败，尝试其他方法..."
-          # 方法2：尝试查找并使用 gradlew
-          if [ -f "gradlew" ]; then
-            chmod +x gradlew
-            ./gradlew :app:assembleDebug
-          fi
-        fi
     
-    # 5. 上传 APK
-    - name: Upload APK
-      if: success()
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
-        name: vlc-android-apk
+        name: vlc-apk
         path: application/app/build/outputs/apk/debug/*.apk
         if-no-files-found: warn
-        retention-days: 7
-    
-    # 6. 构建报告
-    - name: Build Report
-      if: always()
-      run: |
-        echo "=== 构建报告 ==="
-        echo "时间: $(date)"
-        echo "项目: VLC-Android"
-        echo "=== APK 文件查找 ==="
-        find . -name "*.apk" -type f 2>/dev/null || echo "未找到 APK 文件"
