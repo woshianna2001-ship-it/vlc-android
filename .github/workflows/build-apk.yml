@@ -20,7 +20,7 @@ jobs:
         distribution: 'temurin'
     
     # 3. 设置 Android
-    - uses: android-actions/setup-android@v3
+    - uses: android-actions/setup-android@v4
     
     # 4. 构建 APK
     - name: Build
